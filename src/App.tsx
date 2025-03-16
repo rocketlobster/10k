@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Player, Score } from './types';
-import { Users, Trophy } from 'lucide-react';
+import { Users, Trophy, RotateCcw } from 'lucide-react';
+
+// Constants for localStorage
+const GAME_STATE_KEY = '10k-game-state';
 
 function App() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -8,6 +11,42 @@ function App() {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState<number>(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [winner, setWinner] = useState<Player | null>(null);
+
+  // Load game state from localStorage on component mount
+  useEffect(() => {
+    const savedState = localStorage.getItem(GAME_STATE_KEY);
+    if (savedState) {
+      const { players, currentPlayerIndex, gameStarted, winner, numPlayers } = JSON.parse(savedState);
+      setPlayers(players);
+      setCurrentPlayerIndex(currentPlayerIndex);
+      setGameStarted(gameStarted);
+      setWinner(winner);
+      setNumPlayers(numPlayers);
+    }
+  }, []);
+
+  // Save game state to localStorage whenever it changes
+  useEffect(() => {
+    if (gameStarted) {
+      const gameState = {
+        players,
+        currentPlayerIndex,
+        gameStarted,
+        winner,
+        numPlayers
+      };
+      localStorage.setItem(GAME_STATE_KEY, JSON.stringify(gameState));
+    }
+  }, [players, currentPlayerIndex, gameStarted, winner, numPlayers]);
+
+  const resetGame = () => {
+    localStorage.removeItem(GAME_STATE_KEY);
+    setPlayers([]);
+    setCurrentPlayerIndex(0);
+    setGameStarted(false);
+    setWinner(null);
+    setNumPlayers(2);
+  };
 
   const initializePlayers = () => {
     const newPlayers: Player[] = Array.from({ length: numPlayers }, (_, index) => ({
@@ -117,7 +156,7 @@ function App() {
             Final Score: {getLastValidScore(winner.scores)} points
           </p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={resetGame}
             className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
           >
             New Game
@@ -163,9 +202,18 @@ function App() {
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            {players[currentPlayerIndex].name}'s Turn
-          </h1>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold text-gray-800">
+              {players[currentPlayerIndex].name}'s Turn
+            </h1>
+            <button
+              onClick={resetGame}
+              className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset Game
+            </button>
+          </div>
           <div className="flex gap-4 mb-6">
             <form 
               className="flex-1"
