@@ -167,20 +167,40 @@ function App() {
             {players[currentPlayerIndex].name}'s Turn
           </h1>
           <div className="flex gap-4 mb-6">
-            <input
-              type="number"
-              placeholder="Enter score"
-              value={players[currentPlayerIndex].currentScore || ''}
-              onChange={(e) => {
-                const updatedPlayers = [...players];
-                updatedPlayers[currentPlayerIndex].currentScore = parseInt(e.target.value) || null;
-                setPlayers(updatedPlayers);
+            <form 
+              className="flex-1"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (players[currentPlayerIndex].currentScore === 0) {
+                  handlePass();
+                } else if (players[currentPlayerIndex].currentScore) {
+                  handleScoreSubmit(players[currentPlayerIndex].currentScore);
+                }
               }}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            >
+              <input
+                type="number"
+                placeholder="Enter score"
+                value={players[currentPlayerIndex].currentScore === null ? '' : players[currentPlayerIndex].currentScore}
+                onChange={(e) => {
+                  const updatedPlayers = [...players];
+                  const value = e.target.value === '' ? null : parseInt(e.target.value);
+                  updatedPlayers[currentPlayerIndex].currentScore = value;
+                  setPlayers(updatedPlayers);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </form>
             <button
-              onClick={() => handleScoreSubmit(players[currentPlayerIndex].currentScore || 0)}
-              disabled={!players[currentPlayerIndex].currentScore}
+              onClick={() => {
+                const currentScore = players[currentPlayerIndex].currentScore || 0;
+                if (currentScore === 0) {
+                  handlePass();
+                } else {
+                  handleScoreSubmit(currentScore);
+                }
+              }}
+              disabled={players[currentPlayerIndex].currentScore === null}
               className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
             >
               Submit Score
